@@ -61,7 +61,17 @@
     const futuro = new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000);
     console.log('Hoje:', hoje.toLocaleDateString(), '| Daqui 7 dias:', futuro.toLocaleDateString());
   </script>
-
+  <script>
+    // Décimo bloco: Criação e uso de objeto customizado
+    const pessoa = {
+      nome: 'João',
+      idade: 30,
+      saudacao() {
+        return `Olá, meu nome é ${this.nome} e tenho ${this.idade} anos.`;
+      }
+    };
+    console.log(pessoa.saudacao());
+  </script>
 </body>
 
 </html>
