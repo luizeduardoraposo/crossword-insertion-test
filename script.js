@@ -98,7 +98,7 @@ function renderBoard(board, highlights = []) {
     for (let x = 0; x < BOARD_SIZE; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
-      cell.textContent = board[y][x] || '';
+      cell.textContent = board[y][x] ? board[y][x] : '.';
       cell.dataset.x = x;
       cell.dataset.y = y;
       if (highlights.some(([hy, hx]) => hy === y && hx === x)) {
@@ -182,7 +182,8 @@ document.getElementById('newgame').onclick = () => {
 // Inicialização do jogo
 async function startGame() {
   words = await loadWords();
-  words = shuffle(words).filter(w => w.length >= 3);
+  // Só palavras de 3 até 16 letras (máximo que cabe no tabuleiro 4x4)
+  words = shuffle(words).filter(w => w.length >= 3 && w.length <= 16);
   let boardEmpty = createEmptyBoard();
   // Seleciona até 10 palavras para tentar inserir
   let candidateWords = words.slice(0, 10);
