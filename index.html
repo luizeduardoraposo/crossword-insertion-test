@@ -1,11 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test JS - Insertion Method</title>
+  <title>Palavras Cruzadas</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #222;
+      padding: 10px 0;
+    }
+    .navbar i {
+      font-size: 28px;
+      color: #fff;
+      cursor: pointer;
+      margin: 0 8px;
+      transition: color 0.2s;
+    }
+    .navbar i:hover {
+      color: #FFD600;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      grid-template-rows: repeat(4, 60px);
+      gap: 4px;
+      background: #333;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #FFD600;
+      margin-bottom: 20px;
+      transition: transform 0.3s;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      background: #FFD600;
+      color: #222;
+      font-size: 2em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      transition: background 0.2s, color 0.2s;
+    }
+    .cell.selected {
+      background: #222;
+      color: #FFD600;
+    }
+    .cell.highlight {
+      background: #00E676;
+      color: #222;
+    }
+    .mirror {
+      min-height: 40px;
+      margin-bottom: 10px;
+      font-size: 1.5em;
+      color: #FFD600;
+      background: #222;
+      border-radius: 8px;
+      padding: 8px 16px;
+      box-shadow: 0 0 6px #FFD600;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+    .info {
+      color: #FFD600;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    @media (max-width: 600px) {
+      .board {
+        grid-template-columns: repeat(4, 40px);
+        grid-template-rows: repeat(4, 40px);
+      }
+      .cell {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2em;
+      }
+    }
+  </style>
 </head>
 <body>
-  
+  <nav class="navbar">
+    <i class="material-icons" title="Perfil">person</i>
+    <i class="material-icons" title="Amigos">group</i>
+    <i class="material-icons" title="Configurações">settings</i>
+    <i class="material-icons" title="Torneio">emoji_events</i>
+    <i class="material-icons" title="Modos de Jogo">gamepad</i>
+    <i class="material-icons" title="Sobre">info</i>
+  </nav>
+  <div class="game-container">
+    <div class="info" id="info"></div>
+    <div class="mirror" id="mirror"></div>
+    <div class="board" id="board"></div>
+    <div style="display:flex; gap:10px;">
+      <i class="material-icons" id="rotate" title="Girar Tabuleiro" style="font-size:32px;">rotate_right</i>
+      <i class="material-icons" id="newgame" title="Novo Jogo" style="font-size:32px;">refresh</i>
+    </div>
+    <div class="info" id="wordsinfo"></div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
