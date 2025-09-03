@@ -1,7 +1,7 @@
 // Algoritmo de formação de palavras cruzadas
 // Regras: sorteio, arranjo, renderização, interação, rotação, novo jogo, barra de navegação, responsividade, alto contraste
 
-const BOARD_SIZE = 4;
+const BOARD_SIZE = 4; // Tabuleiro 4x4
 let board = [];
 let words = [];
 let placedWords = [];
@@ -93,14 +93,16 @@ function bruteForceInsert(words, board) {
 // Renderiza tabuleiro
 function renderBoard(board, highlights = []) {
   const boardDiv = document.getElementById('board');
+  // Limpa o tabuleiro e remove eventuais estilos antigos
   boardDiv.innerHTML = '';
   for (let y = 0; y < BOARD_SIZE; y++) {
     for (let x = 0; x < BOARD_SIZE; x++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
-      cell.textContent = board[y][x] ? board[y][x] : '.';
+      cell.textContent = board[y][x] !== '' ? board[y][x] : '-';
       cell.dataset.x = x;
       cell.dataset.y = y;
+      cell.removeAttribute('style'); // Remove estilos inline antigos
       if (highlights.some(([hy, hx]) => hy === y && hx === x)) {
         cell.classList.add('selected');
       }
@@ -182,31 +184,97 @@ document.getElementById('newgame').onclick = () => {
 // Inicialização do jogo
 async function startGame() {
   words = await loadWords();
-  // Só palavras de 3 até 16 letras (máximo que cabe em um tabuleiro 4x4)
+  // Só palavras de 3 até 16 letras
   words = shuffle(words).filter(w => w.length >= 3 && w.length <= 16);
   let boardEmpty = createEmptyBoard();
-  // Seleciona até 10 palavras para tentar inserir
-  let candidateWords = words.slice(0, 10);
-  placedWords = bruteForceInsert(candidateWords, boardEmpty);
-  board = createEmptyBoard();
-  if (placedWords.length === 0) {
-    document.getElementById('info').textContent = 'Nenhuma palavra pôde ser inserida no tabuleiro.';
-  }
-  placedWords.forEach(pw => placeWord(board, pw.word, pw.pos));
+  let candidateWords = words.slice(0, 16);
+  // Preencher dinamicamente as letras das palavras sorteadas no tabuleiro
+  let filledBoard = fillBoardWithWords(candidateWords, boardEmpty);
+  board = filledBoard.board;
+  placedWords = filledBoard.placedWords;
   renderBoard(board);
-  showInfo(candidateWords);
+  showInfo();
+  console.log('Palavras sorteadas:', candidateWords);
+  console.log('Quantidade de palavras inseridas:', placedWords.length);
+  console.table(board);
 }
 
-function showInfo(candidateWords) {
-  // Análise combinatória: número máximo de palavras de 3 letras em 4x4
-  // Cada célula pode ser início, 8 direções, 2, 3, 4 letras
-  let minWords = Math.floor((BOARD_SIZE * BOARD_SIZE) / 4); // mínimo: 4 palavras de 4 letras
-  let maxWords = BOARD_SIZE * BOARD_SIZE; // máximo: 16 palavras de 3 letras (teórico)
-  document.getElementById('info').textContent = `Mínimo de palavras possíveis: ${minWords}, Máximo: ${maxWords}`;
-  document.getElementById('wordsinfo').textContent = `Palavras sorteadas: ${candidateWords.join(', ')}`;
-  console.log('Palavras sorteadas:', candidateWords);
-  console.log('Mínimo de palavras possíveis:', minWords);
-  console.log('Máximo de palavras possíveis:', maxWords);
+// Algoritmo força bruta para preencher o tabuleiro com todas as palavras, mesclando letras
+function fillBoardWithWords(words, board) {
+  let placedWords = [];
+  let b = board.map(row => row.slice());
+  let used = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(false));
+  for (let word of words) {
+    let placed = false;
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        for (let dir of directions) {
+          let pos = canPlaceWordMerge(b, word, x, y, dir);
+          if (pos) {
+            placeWord(b, word, pos);
+            pos.forEach(([py, px]) => used[py][px] = true);
+            placedWords.push({ word, pos });
+            placed = true;
+            break;
+          }
+        }
+        if (placed) break;
+      }
+      if (placed) break;
+    }
+  }
+  // Preencher células vazias com letras aleatórias
+  let alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      if (b[y][x] === '') {
+        b[y][x] = alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+    }
+  }
+  return { board: b, placedWords };
+}
+
+// Tenta inserir palavra mesclando letras repetidas
+function canPlaceWordMerge(board, word, x, y, dir) {
+  let positions = [];
+  for (let i = 0; i < word.length; i++) {
+    let nx = x + dir.dx * i;
+    let ny = y + dir.dy * i;
+    if (nx < 0 || ny < 0 || nx >= BOARD_SIZE || ny >= BOARD_SIZE) return null;
+    if (board[ny][nx] !== '' && board[ny][nx] !== word[i]) return null;
+    positions.push([ny, nx]);
+  }
+  return positions;
+}
+
+function showInfo() {
+  // Calcula quantidade de palavras possíveis de no mínimo 3 letras
+  let totalPossiveis = countPossibleWords(board);
+  document.getElementById('info').textContent = `Quantidade de palavras possíveis no tabuleiro: ${totalPossiveis}`;
+  console.log('Quantidade de palavras possíveis no tabuleiro (mínimo 3 letras):', totalPossiveis);
+}
+
+// Conta todas as palavras possíveis de no mínimo 3 letras no tabuleiro
+function countPossibleWords(board) {
+  let found = new Set();
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      for (let dir of directions) {
+        for (let len = 3; len <= BOARD_SIZE; len++) {
+          let word = '';
+          for (let i = 0; i < len; i++) {
+            let nx = x + dir.dx * i;
+            let ny = y + dir.dy * i;
+            if (nx < 0 || ny < 0 || nx >= BOARD_SIZE || ny >= BOARD_SIZE) break;
+            word += board[ny][nx];
+          }
+          if (word.length === len && !word.includes('.')) found.add(word);
+        }
+      }
+    }
+  }
+  return found.size;
 }
 
 window.onload = startGame;
