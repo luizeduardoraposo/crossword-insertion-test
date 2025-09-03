@@ -182,13 +182,16 @@ document.getElementById('newgame').onclick = () => {
 // Inicialização do jogo
 async function startGame() {
   words = await loadWords();
-  // Só palavras de 3 até 16 letras (máximo que cabe no tabuleiro 4x4)
+  // Só palavras de 3 até 16 letras (máximo que cabe em um tabuleiro 4x4)
   words = shuffle(words).filter(w => w.length >= 3 && w.length <= 16);
   let boardEmpty = createEmptyBoard();
   // Seleciona até 10 palavras para tentar inserir
   let candidateWords = words.slice(0, 10);
   placedWords = bruteForceInsert(candidateWords, boardEmpty);
   board = createEmptyBoard();
+  if (placedWords.length === 0) {
+    document.getElementById('info').textContent = 'Nenhuma palavra pôde ser inserida no tabuleiro.';
+  }
   placedWords.forEach(pw => placeWord(board, pw.word, pw.pos));
   renderBoard(board);
   showInfo(candidateWords);
